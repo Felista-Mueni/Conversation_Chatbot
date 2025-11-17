@@ -5,18 +5,23 @@ from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 import string
 
-# Download required NLTK datasets only once
-nltk.download('punkt')
-nltk.download('averaged_perceptron_tagger')
-nltk.download('stopwords')
-nltk.download('wordnet')
+# --- Safe NLTK downloads ---
+nltk_packages = ['punkt', 'averaged_perceptron_tagger', 'stopwords', 'wordnet']
 
-# Load your text file (must be in same folder)
+for pkg in nltk_packages:
+    try:
+        # Check if package is already downloaded
+        nltk.data.find(f'tokenizers/{pkg}' if pkg == 'punkt' else f'corpora/{pkg}')
+    except LookupError:
+        nltk.download(pkg)
+
+# --- Load your text file (must be in same folder) ---
 with open('chatbot.txt', 'r', encoding='utf-8') as f:
     data = f.read().replace('\n', ' ')
 
 sentences = sent_tokenize(data)
 
+# --- Preprocessing function ---
 def preprocess(sentence):
     words = word_tokenize(sentence)
     words = [
@@ -31,6 +36,7 @@ def preprocess(sentence):
 
 corpus = [preprocess(sentence) for sentence in sentences]
 
+# --- Find most relevant sentence ---
 def get_most_relevant_sentence(query):
     query = preprocess(query)
     max_similarity = 0
@@ -47,6 +53,7 @@ def get_most_relevant_sentence(query):
 def chatbot(question):
     return get_most_relevant_sentence(question)
 
+# --- Streamlit app ---
 def main():
     st.title("Chatbot")
     st.write("Hello! I'm a chatbot. Ask me anything about the topic in the text file.")
